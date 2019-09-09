@@ -1,0 +1,253 @@
+<HTML>
+<HEAD>
+
+<META NAME="author" CONTENT="David Montalvo">
+<META NAME="copyright" CONTENT="�2004-2005 David Montalvo">
+<META NAME="description" CONTENT="Human Cannonball Game">
+
+<TITLE>The Human Cannonball Game</TITLE>
+<SCRIPT LANGUAGE=JAVASCRIPT>
+<!--
+
+// _______________________________________
+//|                                       |
+//|	       HUMAN CANNONBALL GAME          |
+//| (c) 2004-2005, 2008 DAVID MONTALVO    |
+//|_______________________________________|
+
+
+//PRELOAD IMAGES
+Image1=new Image(63,60)
+Image1.src="pad.gif"
+
+Image2=new Image(40,40)
+Image2.src="stuntperson.gif"
+
+Image3=new Image(40,40)
+Image3.src="stuntpersonok.gif"
+
+Image4=new Image(40,40)
+Image4.src="stuntpersonnot.gif"
+
+Image5=new Image(40,40)
+Image5.src="canon.gif"
+
+
+//-----------------------------------------
+
+
+if (document.all) {
+	var layerRef="document.all[";
+	var styleRef="].style";
+	} 
+else if (document.layers) {
+	var layerRef="document.layers[";
+	var styleRef="]";
+	}
+else if (document.getElementById) {
+ 	var layerRef="document.getElementById(";
+	var styleRef=").style";
+	}
+
+//---------------------------------------
+
+
+var t=0
+var x=0
+var y=0
+
+var v=0
+var theta=0
+var vx=0
+var vy=0
+
+var xbound=2400
+var ybound=422
+
+var padPosition=200
+
+var tstep=.1
+var speed=50
+
+var stop=0
+
+
+function setData(){
+
+
+	function snagData() {
+		return document.DATAFORM.V.value
+		return document.DATAFORM.THETA.value
+		return document.DATAFORM.TSTEP.selectedIndex
+		}
+
+	v=document.DATAFORM.V.value
+	theta=document.DATAFORM.THETA.value
+
+	
+
+	vx=v*Math.cos(Math.PI*theta/180)
+	vy=v*Math.sin(Math.PI*theta/180)
+	}
+
+
+function move(){
+
+
+		if (x<=xbound && y<ybound && stop==0) {
+			x=95+vx*t
+			y=421-vy*t+4.9*t*t
+			eval(layerRef + '"proj"' + styleRef + '.top = y')
+			eval(layerRef + '"proj"' + styleRef + '.left = x')
+			document.DATAFORM.X.value=Math.round(x-95)
+			document.DATAFORM.Y.value=Math.round(421-y)
+			document.DATAFORM.T.value=Math.round(t*10)/10
+
+			t=t+tstep
+			setTimeout("move()",speed)
+			if (y>=ybound) {
+				getRange()
+				var padMin=padPosition-5
+				var padMax=padPosition+34
+				if (x<padMin || x>padMax) {
+					document.STUNTPERSON.src='stuntpersonnot.gif'
+					}
+				else {
+					document.STUNTPERSON.src='stuntpersonok.gif'
+					}
+				}
+			}     
+
+	}
+
+function getRange(){
+
+	var tmax=vy/4.9
+	var xmax=95+vx*tmax		
+	
+	eval(layerRef + '"proj"' + styleRef + '.top = 421')
+	eval(layerRef + '"proj"' + styleRef + '.left = xmax')
+	document.DATAFORM.X.value=Math.round(xmax-95)
+	document.DATAFORM.Y.value=0
+	document.DATAFORM.T.value=Math.round(tmax*10)/10
+
+
+	}
+
+function goBack(){
+
+
+		x=95
+		y=421
+		t=0
+		xbound=2400;
+		document.STUNTPERSON.src='stuntperson.gif'
+		eval(layerRef + '"proj"' + styleRef + '.top = y')
+		eval(layerRef + '"proj"' + styleRef + '.left = x')
+		document.DATAFORM.X.value=Math.round(x-95)
+		document.DATAFORM.Y.value=Math.round(421-y)
+
+		document.DATAFORM.T.value=Math.round(t*10)/10
+
+		stop=0
+
+
+	}
+
+function getPad() {
+	function snagData() {
+		return document.DATAFORM.RANGE.value
+	}
+	padPosition = parseInt(document.DATAFORM.RANGE.value)
+	padPosition += 95
+	console.log(padPosition)
+	
+	eval(layerRef + '"pad"' + styleRef + '.left = ' + padPosition)
+
+	//document.DATAFORM.RANGE.value=padPosition-95
+
+	document.DATAFORM.X.value=0
+	document.DATAFORM.Y.value=0
+	document.DATAFORM.T.value=0
+
+	}
+
+
+
+function getInstructions() {
+	var instrWindow=window.open("hcinstructions.html","instrWindow",config="height=250,width=450,status=yes,toolbar=no,menubar=no,location=no,scrollbars=yes")
+	}
+
+
+
+//-->
+</SCRIPT>
+</HEAD>
+<BODY STYLE="background: url('shootingrange.gif'); background-repeat: repeat-x" onLoad="getPad()">
+
+<DIV STYLE="position:absolute;top:0;left:0;font-size:11pt;text-align: center; font-weight:bold;background:white;color:black;width=200;border-style: solid;z-index:0">
+<FORM NAME="DATAFORM">
+
+	<U>INPUT DATA</U>
+
+	<BR>
+
+	V: <INPUT TYPE=TEXT NAME="V" SIZE=4 VALUE="" onKeyUp="stop=1;goBack();setData()"> m/s
+
+	<BR>
+
+	<I>&theta;:</I> <INPUT TYPE=TEXT NAME="THETA" SIZE=4 VALUE="" onKeyUp="stop=1;goBack();setData()"> &deg;
+
+	<BR><BR>	
+
+	<INPUT TYPE=BUTTON VALUE="FIRE" onClick="goBack();move();">
+	<BR>
+	<INPUT TYPE=BUTTON VALUE="RELOAD" onClick="goBack()">
+	<BR>
+	<INPUT TYPE=BUTTON VALUE="PLACE PAD" onClick="goBack();getPad()">
+
+	<BR><BR>
+
+	<U>OUTPUT DATA</U>
+	<BR>
+
+	&Delta;x=<INPUT TYPE=TEXT NAME="X" SIZE=5 VALUE=0> m
+	<BR>
+	&Delta;y=<INPUT TYPE=TEXT NAME="Y" SIZE=5 VALUE=0> m
+	<BR>
+	t=<INPUT TYPE=TEXT SIZE=5 NAME="T" VALUE=0> s
+	<BR><BR>
+</DIV>
+
+<DIV STYLE="position: absolute; left: 90; top: 480; color: white; z-index=1">
+	Range = <INPUT VALUE=200 TYPE=TEXT NAME=RANGE SIZE=3 STYLE="color: white; font-weight: bold; background: #009900"> m
+</DIV>
+
+</FORM>
+
+
+
+
+<DIV ID="proj" STYLE="position: absolute; left: 95; top: 420; z-index: 1">
+	<IMG SRC="stuntperson.gif" NAME="STUNTPERSON">
+</DIV>
+<DIV STYLE="position: absolute; left: 86; top: 420; z-index=1">
+	<IMG SRC="canon.gif" HEIGHT=50 WIDTH=50>
+</DIV>
+
+<DIV ID='pad' STYLE='position: absolute; left: -100; top: 425; z-index: 0'>
+	<IMG SRC='pad.gif' NAME='PAD'>
+</DIV>
+
+
+<P ALIGN=CENTER STYLE="position:absolute;top:500;left:260;font-size:18pt;font-style: italic;background:white;color:black;width=500;z-index:0">
+The Human Cannonball Game<BR>
+<INPUT TYPE=BUTTON VALUE="INSTRUCTIONS" onClick="getInstructions()">
+<BR>
+<A HREF="http://www.mrmont.com" STYLE="font-size: 12pt">main site</A>
+
+</P>
+
+
+</BODY>
+</HTML>
